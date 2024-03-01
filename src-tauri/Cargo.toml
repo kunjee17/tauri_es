@@ -1,0 +1,33 @@
+[package]
+name = "tauri_es"
+version = "0.0.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "2.0.0-beta", features = [] }
+
+[dependencies]
+tauri = { version = "2.0.0-beta", features = [] }
+tauri-plugin-shell = "2.0.0-beta"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+cosmo_store = { git = "https://github.com/kunjee17/cosmo-store-rs"}
+cosmo_store_util = {git = "https://github.com/kunjee17/cosmo-store-rs"}
+cosmo_store_sqlx_sqlite = {git = "https://github.com/kunjee17/cosmo-store-rs"}
+serde_derive = "1"
+sqlx = { version = "0", features = [ "runtime-tokio-rustls", "sqlite", "uuid", "chrono", "json"] }
+chrono = { version = "0", features = ["serde"] }
+log = "0"
+env_logger = "0"
+uuid = { version = "1.6.1", features = ["v4", "serde"] }
+
+
+[features]
+# This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
