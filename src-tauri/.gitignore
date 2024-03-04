@@ -2,3 +2,9 @@
 # will have compiled files and executables
 /target/
 
+read.db
+read.db-shm
+read.db-wal
+write.db
+write.db-shm
+write.db-wal

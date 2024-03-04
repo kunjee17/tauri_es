@@ -1,14 +1,15 @@
 {
   "productName": "tauri_es",
   "version": "0.0.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "in.fuzzycloud.es",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },
-  "app": {"windows": [
+  "app": {
+    "windows": [
       {
         "title": "tauri_es",
         "width": 800,

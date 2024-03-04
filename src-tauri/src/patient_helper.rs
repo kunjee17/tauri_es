@@ -7,13 +7,45 @@ use crate::types::patient::Patient;
 use crate::types::patient_db::{AddressDB, PatientDB, PatientMeta};
 use anyhow::{bail, Result};
 use cosmo_store::common::i64_event_version::EventVersion;
+use cosmo_store::traits::event_store::EventStore;
 use cosmo_store::types::event_read::EventRead;
 use cosmo_store::types::event_read_range::EventsReadRange;
+use cosmo_store::types::event_write::EventWrite;
 use cosmo_store::types::expected_version::ExpectedVersion;
 use cosmo_store_sqlx_sqlite::event_store_sqlx_sqlite::EventStoreSQLXSqlite;
-use cosmo_store_util::aggregate::{make_handler, Aggregate};
+use cosmo_store_util::aggregate::Aggregate;
+use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 use uuid::Uuid;
+
+
+//TODO: Copy of original Make Handler function that I m trying to make it work
+pub async fn make_handler<State, Command, Event, Meta, Version>(
+    aggregate: &dyn Aggregate<State, Command, Event>,
+    store: &dyn EventStore<Event, Meta, Version>,
+    command: &Command,
+    stream_id: &str,
+    range: &EventsReadRange<Version>,
+    expected_version: &ExpectedVersion<Version>,
+) -> Result<Vec<EventRead<Event, Meta, Version>>>
+where
+    Version: Eq + PartialEq,
+    Event: Into<EventWrite<Event, Meta>> + Clone + Serialize + for<'de> Deserialize<'de>,
+    Meta: Clone + Serialize + for<'de> Deserialize<'de>,
+{
+    let events = store.get_events(stream_id, range).await?;
+    let state = events
+        .iter()
+        .fold(aggregate.init(), |a, b| aggregate.apply(a, &b.data));
+    let new_events = aggregate
+        .execute(&state, command)?
+        .iter()
+        .map(|x| x.clone().into())
+        .collect();
+    store
+        .append_events(stream_id, expected_version, new_events)
+        .await
+}
 
 pub async fn process_patient_command(
     store: EventStoreSQLXSqlite,
@@ -32,7 +64,6 @@ pub async fn process_patient_command(
         &ExpectedVersion::Any,
     )
     .await
-
 }
 
 pub async fn process_patient_events(
